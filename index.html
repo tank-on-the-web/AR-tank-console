@@ -194,7 +194,7 @@ if (!createObjectURL) {
               h = (h*f);
               img.getContext('2d').drawImage(this, (640-w)/2,(640-h)/2,w,h);
               self.texture.changed = true;
-              self.setSize(1.1*Math.max(w/h, h/w));
+              self.setSize(6*Math.max(w/h, h/w));
             };
             if (Object.isImageLoaded(src)) {
               src.onload();
