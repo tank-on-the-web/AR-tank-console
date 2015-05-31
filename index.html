@@ -11,6 +11,8 @@
   threshold = 128;
   DEBUG = false;
 
+  isLockOn = false;
+
   photos = Photos.map(Image.load);
 
   // var video = document.createElement('video');
@@ -138,6 +140,17 @@ if (!createObjectURL) {
 
       var t = new Date();
       var detected = detector.detectMarkerLite(raster, threshold);
+      if (detected > 0) {
+        if (!isLockOn) {
+          isLockOn = true;
+          onLockOnChanged(isLockOn);
+        }
+      } else {
+        if (isLockOn) {
+          isLockOn = false;
+          onLockOnChanged(isLockOn);
+        }
+      }
       for (var idx = 0; idx<detected; idx++) {
         var id = detector.getIdMarkerData(idx);
         //read data from i_code via Marsial--Marshal経由で読み出す
@@ -237,6 +250,15 @@ if (!createObjectURL) {
       }
     }, 15);
   }
+
+  function onLockOnChanged(lockon) {
+    if (lockon) {
+      console.log('Lock on!');
+    } else {
+      console.log('Missed!');
+    }
+  }
+
 </script>
 <style>
   html {
