@@ -3416,11 +3416,11 @@ RleElement = ASKlass('RleElement',
   createArray : function(i_length)
   {
     return new IntVector(toInt(i_length)*3);
-    var ret = new Array(toInt(i_length));
-    for (var i = 0; i < i_length; i++) {
-      ret[i] = new RleElement();
-    }
-    return ret;
+//    var ret = new Array(toInt(i_length));
+//    for (var i = 0; i < i_length; i++) {
+//      ret[i] = new RleElement();
+//    }
+//    return ret;
   }
 })
 NyARRleLabelFragmentInfo = ASKlass('NyARRleLabelFragmentInfo', NyARLabelInfo,
