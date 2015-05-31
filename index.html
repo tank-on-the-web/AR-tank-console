@@ -71,10 +71,6 @@ if (!createObjectURL) {
     // videoCanvas.height = video.height;
     videoCanvas.width = parseInt(video.style.width);
     videoCanvas.height = parseInt(video.style.height);
-// >>>
-    // videoCanvas.style.display = 'block';
-    // document.body.appendChild(videoCanvas);
-// <<< 
 
     var raster = new NyARRgbRaster_Canvas2D(canvas);
     var param = new FLARParam(320,240);
