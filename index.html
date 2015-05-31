@@ -1,4 +1,6 @@
-<html><head>
+<html>
+<head>
+<meta charset="utf-8">
 <script src="JSARToolKit.js"></script>
 <script src="magi.js"></script>
 <script src="utils.js"></script>
@@ -84,7 +86,8 @@ if (!createObjectURL) {
     ctx.font = "24px URW Gothic L, Arial, Sans-serif";
 
     var glCanvas = document.createElement('canvas');
-    glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
+    // glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
+    // glCanvas.style.transform = 'scale(-1.0, 1.0)';
     glCanvas.width = 960;
     glCanvas.height = 720;
     var s = glCanvas.style;
