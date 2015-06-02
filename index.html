@@ -6,6 +6,7 @@
 <script src="JSARToolKit.js"></script>
 <script src="magi.js"></script>
 <script src="utils.js"></script>
+<script src="hostname.js"></script>
 <script src="photos.js"></script>
 <script>
   threshold = 128;
@@ -252,11 +253,11 @@ if (!createObjectURL) {
   }
 
   function onLockOnChanged(lockon) {
-    if (lockon) {
-      console.log('Lock on!');
-    } else {
-      console.log('Missed!');
-    }
+    var status = lockon ? 'in' : 'out';
+    var url = 'http://aws-tank.azurewebsites.net/api/scope?tank=' + HOSTNAME + '&status=' + status;
+    var xhr = new XmlHttpRequest();
+    xhr.open('GET', url);
+    xhr.send();
   }
 
 </script>
