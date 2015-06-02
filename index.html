@@ -16,6 +16,7 @@
 
   photos = Photos.map(Image.load);
 
+  var isVideo = false;
   // var video = document.createElement('video');
   // video.width = 640;
   // video.height = 480;
@@ -58,22 +59,54 @@ if (!createObjectURL) {
 //     alert("Couldn't access webcam.");
 //   }
 // );
+  function onMjpgStreamLoadError() {
+    video = document.createElement('video');
+    video.width = 640;
+    video.height = 480;
+    video.loop = true;
+    video.volume = 0;
+    video.autoplay = true;
+    video.style.display = 'none';
+    video.controls = true;
+
+    getUserMedia({'video': true},
+      function(stream) {
+        var url = createObjectURL(stream);
+        video.src = url;
+        document.body.appendChild(video);
+        isVideo = true;
+        main();
+      },
+      function(error) {
+        alert("Couldn't access webcam.");
+      }
+    );
+  }
 
   window.onload = function() {
     byId('loading').style.display = 'none';
     video.src = "/?action=stream";
-    document.body.appendChild(video);
+    video.onload = function () {
+      document.body.appendChild(video);
+      main();
+    }
+    video.onerror = onMjpgStreamLoadError;
+  }
 
+  function main() {
     var canvas = document.createElement('canvas');
     canvas.width = 320;
     canvas.height = 240;
     canvas.style.display = 'block';
 
     var videoCanvas = document.createElement('canvas');
-    // videoCanvas.width = video.width;
-    // videoCanvas.height = video.height;
-    videoCanvas.width = parseInt(video.style.width);
-    videoCanvas.height = parseInt(video.style.height);
+    if (isVideo) {
+      videoCanvas.width = video.width;
+      videoCanvas.height = video.height;
+    } else {
+      videoCanvas.width = parseInt(video.style.width);
+      videoCanvas.height = parseInt(video.style.height);
+    }
 
     var raster = new NyARRgbRaster_Canvas2D(canvas);
     var param = new FLARParam(320,240);
@@ -87,8 +120,10 @@ if (!createObjectURL) {
     ctx.font = "24px URW Gothic L, Arial, Sans-serif";
 
     var glCanvas = document.createElement('canvas');
-    // glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
-    // glCanvas.style.transform = 'scale(-1.0, 1.0)';
+    if (isVideo) {
+      glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
+      glCanvas.style.transform = 'scale(-1.0, 1.0)';
+    }
     glCanvas.width = 960;
     glCanvas.height = 720;
     var s = glCanvas.style;
@@ -121,14 +156,16 @@ if (!createObjectURL) {
     }, false);
 
     setInterval(function(){
-      // if (video.ended) video.play();
-      // if (video.paused) return;
-      // if (window.paused) return;
-      // if (video.currentTime == video.duration) {
-      //   video.currentTime = 0;
-      // }
-      // if (video.currentTime == lastTime) return;
-      // lastTime = video.currentTime;
+      if (isVideo) {
+        if (video.ended) video.play();
+        if (video.paused) return;
+        if (window.paused) return;
+        if (video.currentTime == video.duration) {
+          video.currentTime = 0;
+        }
+        if (video.currentTime == lastTime) return;
+        lastTime = video.currentTime;
+      }
       videoCanvas.getContext('2d').drawImage(video,0,0);
 
       ctx.drawImage(videoCanvas, 0,0,320,240);
