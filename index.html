@@ -255,7 +255,7 @@ if (!createObjectURL) {
   function onLockOnChanged(lockon) {
     var status = lockon ? 'in' : 'out';
     var url = 'http://aws-tank.azurewebsites.net/api/scope?tank=' + HOSTNAME + '&status=' + status;
-    var xhr = new XmlHttpRequest();
+    var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.send();
   }
