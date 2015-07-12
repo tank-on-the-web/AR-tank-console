@@ -26,8 +26,10 @@
   // video.style.display = 'none';
   // video.controls = true;
   var video = document.createElement('img');
-  video.style.width = 640;
-  video.style.height = 480;
+//  video.style.width = 640;
+//  video.style.height = 480;
+  video.style.width = 320;
+  video.style.height = 240;
   video.style.display = 'none';
 
 var getUserMedia = function(t, onsuccess, onerror) {
@@ -61,8 +63,10 @@ if (!createObjectURL) {
 // );
   function onMjpgStreamLoadError() {
     video = document.createElement('video');
-    video.width = 640;
-    video.height = 480;
+//    video.width = 640;
+//    video.height = 480;
+    video.width = 320;
+    video.height = 240;
     video.loop = true;
     video.volume = 0;
     video.autoplay = true;
@@ -234,16 +238,19 @@ if (!createObjectURL) {
             .setAngle(Math.PI)
             .setSize(1.5);
           image.setImage = function(src) {
-            var img = E.canvas(640,640);
+//            var img = E.canvas(640,640);
+            var img = E.canvas(320,320);
             Magi.Image.setImage.call(this, img);
             this.texture.generateMipmaps = false;
             var self = this;
             src.onload = function(){
               var w = this.width, h = this.height;
-              var f = Math.min(640/w, 640/h);
+//              var f = Math.min(640/w, 640/h);
+              var f = Math.min(320/w, 320/h);
               w = (w*f);
               h = (h*f);
-              img.getContext('2d').drawImage(this, (640-w)/2,(640-h)/2,w,h);
+//              img.getContext('2d').drawImage(this, (640-w)/2,(640-h)/2,w,h);
+              img.getContext('2d').drawImage(this, (320-w)/2,(320-h)/2,w,h);
               self.texture.changed = true;
               self.setSize(6*Math.max(w/h, h/w));
             };
@@ -290,11 +297,14 @@ if (!createObjectURL) {
   }
 
   function onLockOnChanged(lockon) {
+    console.log("lockon=", lockon);
+/*
     var status = lockon ? 'in' : 'out';
     var url = 'http://default-environment-jiwrv7cs4n.elasticbeanstalk.com/api/attack?tank=' + HOSTNAME + '&status=' + status;
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.send();
+*/
   }
 
 </script>
