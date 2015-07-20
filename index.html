@@ -8,7 +8,11 @@
 <script src="utils.js"></script>
 <script src="hostname.js"></script>
 <script src="photos.js"></script>
+<script src="webrtc.js"></script>
 <script>
+  var VIEW_WIDTH  = 640;
+  var VIEW_HEIGHT = 480;
+
   threshold = 128;
   DEBUG = false;
 
@@ -16,21 +20,7 @@
 
   photos = Photos.map(Image.load);
 
-  var isVideo = false;
-  // var video = document.createElement('video');
-  // video.width = 640;
-  // video.height = 480;
-  // video.loop = true;
-  // video.volume = 0;
-  // video.autoplay = true;
-  // video.style.display = 'none';
-  // video.controls = true;
-  var video = document.createElement('img');
-//  video.style.width = 640;
-//  video.style.height = 480;
-  video.style.width = 320;
-  video.style.height = 240;
-  video.style.display = 'none';
+  var video;
 
 var getUserMedia = function(t, onsuccess, onerror) {
   if (navigator.getUserMedia) {
@@ -52,59 +42,87 @@ if (!createObjectURL) {
   throw new Error("URL.createObjectURL not found.");
 }
 
-// getUserMedia({'video': true},
-//   function(stream) {
-//     var url = createObjectURL(stream);
-//     video.src = url;
-//   },
-//   function(error) {
-//     alert("Couldn't access webcam.");
-//   }
-// );
-  function onMjpgStreamLoadError() {
-    video = document.createElement('video');
-//    video.width = 640;
-//    video.height = 480;
-    video.width = 320;
-    video.height = 240;
-    video.loop = true;
-    video.volume = 0;
-    video.autoplay = true;
-    video.style.display = 'none';
-    video.controls = true;
-
+  function startGetUserMedia(errorCB) {
+    errorCB = errorCB || function(error) { alert(error.toString()); };
     getUserMedia({'video': true},
       function(stream) {
-        var url = createObjectURL(stream);
-        video.src = url;
+        video = document.createElement('video');
+        video.width = VIEW_WIDTH;
+        video.height = VIEW_HEIGHT;
+        video.loop = true;
+        video.volume = 0;
+        video.autoplay = true;
+        video.style.display = 'none';
+        video.src = URL.createObjectURL(stream);
         document.body.appendChild(video);
-        isVideo = true;
         main();
       },
-      function(error) {
-        alert("Couldn't access webcam.");
-      }
+      errorCB
     );
   }
 
-  window.onload = function() {
-    byId('loading').style.display = 'none';
-    video.src = "/?action=stream";
-    video.onload = function () {
+  function startWebRTC(errorCB) {
+    errorCB = errorCB || function(error) { alert(error.toString()); };
+    var host = window.location.hostname;
+    var port = '8080';
+    WebRTC.start(host, port, function (stream) {
+      video = document.createElement('video');
+      video.width = VIEW_WIDTH;
+      video.height = VIEW_HEIGHT;
+      video.loop = true;
+      video.volume = 0;
+      video.autoplay = true;
+      video.style.display = 'none';
+      video.src = URL.createObjectURL(stream);
       document.body.appendChild(video);
       main();
+    },
+    function (error) {
+      if (video) {
+        video.src = '';
+      }
+      errorCB(error);
+    });
+  }
+
+  function startMjpgStream(errorCB) {
+    errorCB = errorCB || function(error) { alert(error.toString()); };
+    VIEW_WIDTH  = 320;  // XXX
+    VIEW_HEIGHT = 240;  // XXX
+    var isMjpgLoaded = false;
+    var img = document.createElement('img');
+    img.style.width = VIEW_WIDTH;
+    img.style.height = VIEW_HEIGHT;
+    img.src = "/?action=stream";
+    img.onload = function () {
+      if (!isMjpgLoaded) {
+        isMjpgLoaded = true;
+        video = img;
+        video.style.display = 'none';
+        document.body.appendChild(video);
+        main();
+      }
     }
-    video.onerror = onMjpgStreamLoadError;
+    img.onerror = errorCB;
+  }
+
+  window.onload = function() {
+    // startMjpgStream(function (error) {
+    startWebRTC(function (error) {
+      console.log(error);
+      startGetUserMedia();
+    });
   }
 
   function main() {
+    byId('loading').style.display = 'none';
     var canvas = document.createElement('canvas');
-    canvas.width = 320;
-    canvas.height = 240;
+    canvas.width = VIEW_WIDTH;
+    canvas.height = VIEW_HEIGHT;
     canvas.style.display = 'block';
 
     var videoCanvas = document.createElement('canvas');
-    if (isVideo) {
+    if (video.nodeName === 'VIDEO') {
       videoCanvas.width = video.width;
       videoCanvas.height = video.height;
     } else {
@@ -113,7 +131,7 @@ if (!createObjectURL) {
     }
 
     var raster = new NyARRgbRaster_Canvas2D(canvas);
-    var param = new FLARParam(320,240);
+    var param = new FLARParam(VIEW_WIDTH, VIEW_HEIGHT);
 
     var resultMat = new NyARTransMatResult();
 
@@ -124,10 +142,10 @@ if (!createObjectURL) {
     ctx.font = "24px URW Gothic L, Arial, Sans-serif";
 
     var glCanvas = document.createElement('canvas');
-    if (isVideo) {
-      glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
-      glCanvas.style.transform = 'scale(-1.0, 1.0)';
-    }
+    // if (video.nodeName === 'VIDEO') {
+    //   glCanvas.style.webkitTransform = 'scale(-1.0, 1.0)';
+    //   glCanvas.style.transform = 'scale(-1.0, 1.0)';
+    // }
     glCanvas.width = 960;
     glCanvas.height = 720;
     var s = glCanvas.style;
@@ -160,7 +178,7 @@ if (!createObjectURL) {
     }, false);
 
     setInterval(function(){
-      if (isVideo) {
+      if (video.nodeName === 'VIDEO') {
         if (video.ended) video.play();
         if (video.paused) return;
         if (window.paused) return;
@@ -169,10 +187,14 @@ if (!createObjectURL) {
         }
         if (video.currentTime == lastTime) return;
         lastTime = video.currentTime;
+        // In WebRTC, video size changes automatically
+        // console.log('size=' + video.videoWidth + 'x' + video.videoHeight);
+        videoCanvas.getContext('2d').drawImage(video, 0,0,video.videoWidth,video.videoHeight, 0,0,VIEW_WIDTH,VIEW_HEIGHT);
+      } else {
+        videoCanvas.getContext('2d').drawImage(video,0,0);
       }
-      videoCanvas.getContext('2d').drawImage(video,0,0);
 
-      ctx.drawImage(videoCanvas, 0,0,320,240);
+      ctx.drawImage(videoCanvas, 0,0,VIEW_WIDTH,VIEW_HEIGHT);
       var dt = new Date().getTime();
 
       videoTex.material.textures.Texture0.changed = true;
@@ -238,19 +260,16 @@ if (!createObjectURL) {
             .setAngle(Math.PI)
             .setSize(1.5);
           image.setImage = function(src) {
-//            var img = E.canvas(640,640);
-            var img = E.canvas(320,320);
+            var img = E.canvas(VIEW_WIDTH,VIEW_WIDTH);
             Magi.Image.setImage.call(this, img);
             this.texture.generateMipmaps = false;
             var self = this;
             src.onload = function(){
               var w = this.width, h = this.height;
-//              var f = Math.min(640/w, 640/h);
-              var f = Math.min(320/w, 320/h);
+              var f = Math.min(VIEW_WIDTH/w, VIEW_WIDTH/h);
               w = (w*f);
               h = (h*f);
-//              img.getContext('2d').drawImage(this, (640-w)/2,(640-h)/2,w,h);
-              img.getContext('2d').drawImage(this, (320-w)/2,(320-h)/2,w,h);
+              img.getContext('2d').drawImage(this, (VIEW_WIDTH-w)/2,(VIEW_WIDTH-h)/2,w,h);
               self.texture.changed = true;
               self.setSize(6*Math.max(w/h, h/w));
             };
