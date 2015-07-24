@@ -319,15 +319,43 @@ if (!createObjectURL) {
     }, 15);
   }
 
+  // http://on-jin.com/sound/sen.php  
+  var bombs = [
+    '/data/sen_ge_bom15.mp3',
+    '/data/sen_ge_taihou08.mp3'
+  ];
+  var hits = [
+    '/data/sen_ge_bom16.mp3',
+    '/data/sen_ge_hasai01.mp3'
+  ];
+
+  var bombIndex = 0;
+  function playBomb() {
+    var name = bombs[bombIndex++ % bombs.length]
+    playAudio(name);
+  }
+
+  var hitIndex = 0;
+  function playHit() {
+    setTimeout(function () {
+      var name = hits[hitIndex++ % hits.length]
+      playAudio(name);
+      byId('overlay').style.display = 'block';
+      setTimeout(function () {
+        byId('overlay').style.display = 'none';
+      }, 400);
+    }, 300);
+  }
+
+  function playAudio(filename) {
+    var audio = new Audio();
+    console.log(filename);
+    audio.src = filename;
+    audio.play(); 
+  }
+
   function onLockOnChanged(lockon) {
     console.log("lockon=", lockon);
-
-    // var status = lockon ? 'in' : 'out';
-    // var url = 'http://default-environment-jiwrv7cs4n.elasticbeanstalk.com/api/attack?tank=' + HOSTNAME + '&status=' + status;
-    // var xhr = new XMLHttpRequest();
-    // xhr.open('GET', url);
-    // xhr.send();
-
     var msg = {
       lockon: lockon
     };
@@ -336,7 +364,12 @@ if (!createObjectURL) {
 
   function onMessage(msg) {
     if (msg.fire) {
-
+      console.log('fire!');
+      playBomb();
+    }
+    if (msg.hit) {
+      console.log('hit!!');
+      playHit();
     }
   }
 
@@ -357,10 +390,21 @@ if (!createObjectURL) {
     font-weight: bold;
     font-family: Times;
   }
+  .overlay {
+    position: absolute;
+    top: 0px;
+    width:100%;
+    height:100%;
+    display: none;
+  }
+  .flash {
+    background: rgba(255,255,250,0.7);
+  }
 </style>
 
 </head>
 <body>
 <div id="loading">Hang on, I'm loading stuff...</div>
+<div id="overlay" class="overlay flash"></div>
 </body>
 </html>

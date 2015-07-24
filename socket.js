@@ -19,14 +19,14 @@
         self.onerror(event.data);
       };
       socket.onmessage = function(event) {
-        self.onmessage(event.data);
+        self.onmessage(JSON.parse(event.data));
       };
     }
     Socket.prototype.send = function(msg) {
       if (this.socket) {
         this.socket.send(JSON.stringify(msg));
       }
-    }
+    };
     return Socket;
   })();
 })();
