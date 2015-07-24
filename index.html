@@ -9,14 +9,20 @@
 <script src="hostname.js"></script>
 <script src="photos.js"></script>
 <script src="webrtc.js"></script>
+<script src="socket.js"></script>
 <script>
   var VIEW_WIDTH  = 640;
   var VIEW_HEIGHT = 480;
 
+  var HOST = window.location.hostname;
+  var WEBRTC_PORT = 8080;
+  var SOCKET_PORT = 7090;
+
   threshold = 128;
   DEBUG = false;
 
-  isLockOn = false;
+  var socket = new Socket(HOST, SOCKET_PORT, onMessage);
+  var isLockOn = false;
 
   photos = Photos.map(Image.load);
 
@@ -63,9 +69,7 @@ if (!createObjectURL) {
 
   function startWebRTC(errorCB) {
     errorCB = errorCB || function(error) { alert(error.toString()); };
-    var host = window.location.hostname;
-    var port = '8080';
-    WebRTC.start(host, port, function (stream) {
+    WebRTC.start(HOST, WEBRTC_PORT, function (stream) {
       video = document.createElement('video');
       video.width = VIEW_WIDTH;
       video.height = VIEW_HEIGHT;
@@ -317,13 +321,23 @@ if (!createObjectURL) {
 
   function onLockOnChanged(lockon) {
     console.log("lockon=", lockon);
-/*
-    var status = lockon ? 'in' : 'out';
-    var url = 'http://default-environment-jiwrv7cs4n.elasticbeanstalk.com/api/attack?tank=' + HOSTNAME + '&status=' + status;
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.send();
-*/
+
+    // var status = lockon ? 'in' : 'out';
+    // var url = 'http://default-environment-jiwrv7cs4n.elasticbeanstalk.com/api/attack?tank=' + HOSTNAME + '&status=' + status;
+    // var xhr = new XMLHttpRequest();
+    // xhr.open('GET', url);
+    // xhr.send();
+
+    var msg = {
+      lockon: lockon
+    };
+    socket.send(msg);
+  }
+
+  function onMessage(msg) {
+    if (msg.fire) {
+
+    }
   }
 
 </script>
